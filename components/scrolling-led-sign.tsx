@@ -14,8 +14,18 @@ interface ScrollingLedSignProps {
 export function ScrollingLedSign({ text }: ScrollingLedSignProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const prefersReducedMotion = useRef<boolean>(false)
 
   useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    prefersReducedMotion.current = mediaQuery.matches
+
+    const handleMediaQueryChange = (e: MediaQueryListEvent) => {
+      prefersReducedMotion.current = e.matches
+    }
+
+    mediaQuery.addEventListener('change', handleMediaQueryChange)
+
     if (!canvasRef.current) return
 
     const scene = new THREE.Scene()
@@ -166,7 +176,9 @@ export function ScrollingLedSign({ text }: ScrollingLedSignProps) {
 
     const animate = () => {
       requestAnimationFrame(animate)
-      material.uniforms.u_time.value += 0.03 // Scrolling speed
+      if (!prefersReducedMotion.current) {
+        material.uniforms.u_time.value += 0.01 // Scrolling speed
+      }
       renderer.render(scene, camera)
     }
 
